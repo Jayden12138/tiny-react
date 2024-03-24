@@ -22,6 +22,8 @@ function createTextNode(text) {
 
 // render 递归 整个树
 function render(el, container) {
+	if (!el) return
+
 	const dom =
 		el.type === 'TEXT_ELEMENT'
 			? document.createTextNode('')
@@ -36,7 +38,9 @@ function render(el, container) {
 
 	// children
 	const children = el.props.children
-	children.forEach(child => render(child, dom))
+	if (children) {
+		children.forEach(child => render(child, dom))
+	}
 
 	// mount
 	container.append(dom)
