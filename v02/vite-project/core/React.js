@@ -13,9 +13,11 @@ function createElement(type, props, ...children) {
 		type,
 		props: {
 			...props,
-			children: children.map(child =>
-				typeof child === 'string' ? createTextNode(child) : child
-			),
+			children: children.map(child => {
+				const isTextNode =
+					typeof child === 'string' || typeof child === 'number'
+				return isTextNode ? createTextNode(child) : child
+			}),
 		},
 	}
 }
@@ -36,8 +38,7 @@ function updateProps(dom, props) {
 	})
 }
 
-function initChildren(work) {
-	const children = work.props.children
+function initChildren(work, children) {
 	let prevChild = null
 	children.forEach((child, index) => {
 		const newWork = {
@@ -94,7 +95,15 @@ function commitRoot() {
 
 function commitWork(work) {
 	if (!work) return
-	work.parent.dom.append(work.dom)
+
+	let workParent = work.parent
+	while (!workParent.dom) {
+		workParent = workParent.parent
+	}
+
+	if (work.dom) {
+		workParent.dom.append(work.dom)
+	}
 	commitWork(work.child)
 	commitWork(work.sibling)
 }
@@ -106,17 +115,23 @@ function performWorkOfUnit(work) {
 	// 3. 转换链表 设置好指针
 	// 4. 返回下一个要执行的任务
 
-	if (!work.dom) {
-		// 创建dom
-		const dom = (work.dom = createDom(work.type))
-		// work.parent.dom.append(dom)
+	const isFunctionComponent = typeof work.type === 'function'
+	if (!isFunctionComponent) {
+		if (!work.dom) {
+			// 创建dom
+			const dom = (work.dom = createDom(work.type))
+			// work.parent.dom.append(dom)
 
-		// props
-		updateProps(dom, work.props)
+			// props
+			updateProps(dom, work.props)
+		}
 	}
 
+	const children = isFunctionComponent
+		? [work.type(work.props)]
+		: work.props.children
 	// children
-	initChildren(work)
+	initChildren(work, children)
 
 	// 返回下一个任务
 	if (work.child) {
