@@ -3,9 +3,11 @@ function createElement(type, props, ...children) {
 		type,
 		props: {
 			...props,
-			children: children.map(child =>
-				typeof child === 'string' ? createTextNode(child) : child
-			),
+			children: children.map(child => {
+				const isTextNode =
+					typeof child === 'string' || typeof child === 'number'
+				return isTextNode ? createTextNode(child) : child
+			}),
 		},
 	}
 }
@@ -55,7 +57,15 @@ function commitRoot() {
 
 function commitWork(fiber) {
 	if (!fiber) return
-	fiber.parent.dom.append(fiber.dom)
+
+	let fiberParent = fiber.parent
+	while (!fiberParent.dom) {
+		fiberParent = fiberParent.parent
+	}
+
+	if (fiber.dom) {
+		fiberParent.dom.append(fiber.dom)
+	}
 	commitWork(fiber.child)
 	commitWork(fiber.sibling)
 }
@@ -73,9 +83,8 @@ function updateProps(dom, props) {
 		}
 	})
 }
-function initChildren(fiber) {
+function initChildren(fiber, children) {
 	// 3. 树转换成链表 设置好指针
-	const children = fiber.props.children
 	let prevChild = null
 	children.forEach((child, index) => {
 		const newFiber = {
@@ -98,28 +107,37 @@ function initChildren(fiber) {
 }
 
 function performWorkOfUnit(fiber) {
-	if (!fiber.dom) {
-		// 1. 创建dom
-		const dom = (fiber.dom = createDom(fiber.type))
-		// fiber.parent.dom.append(dom)
+	const isFunctionComponent = typeof fiber.type === 'function'
+	if (!isFunctionComponent) {
+		if (!fiber.dom) {
+			// 1. 创建dom
+			const dom = (fiber.dom = createDom(fiber.type))
+			// fiber.parent.dom.append(dom)
 
-		// 2. 处理props
-		updateProps(dom, fiber.props)
+			// 2. 处理props
+			updateProps(dom, fiber.props)
+		}
 	}
 
+	const children = isFunctionComponent
+		? [fiber.type(fiber.props)]
+		: fiber.props.children
 	// 3. 树转换成链表 设置好指针
-	initChildren(fiber)
+	initChildren(fiber, children)
 
 	// 4. 返回下一个要执行的任务
 	if (fiber.child) {
 		return fiber.child
 	}
 
-	if (fiber.sibling) {
-		return fiber.sibling
+	let nextFiber = fiber
+	while (nextFiber) {
+		if (nextFiber.sibling) {
+			return nextFiber.sibling
+		}
+		nextFiber = nextFiber.parent
 	}
-
-	return fiber.parent?.sibling
+	// return fiber.parent?.sibling
 }
 
 requestIdleCallback(workLoop)
