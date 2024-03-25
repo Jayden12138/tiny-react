@@ -37,7 +37,6 @@ function updateProps(dom, props) {
 }
 
 function initChildren(work) {
-	console.log(work, work.props.children)
 	const children = work.props.children
 	let prevChild = null
 	children.forEach((child, index) => {
@@ -67,9 +66,11 @@ function render(el, container) {
 			children: [el],
 		},
 	}
+	root = nextWork
 }
 
 let nextWork = null
+let root = null
 function workLoop(deadline) {
 	let shouldYield = false
 
@@ -79,7 +80,23 @@ function workLoop(deadline) {
 		shouldYield = deadline.timeRemaining() < 1
 	}
 
+	if (!nextWork && root) {
+		commitRoot()
+	}
+
 	requestIdleCallback(workLoop)
+}
+
+function commitRoot() {
+	commitWork(root.child)
+	root = null
+}
+
+function commitWork(work) {
+	if (!work) return
+	work.parent.dom.append(work.dom)
+	commitWork(work.child)
+	commitWork(work.sibling)
 }
 
 // 执行任务
@@ -89,12 +106,10 @@ function performWorkOfUnit(work) {
 	// 3. 转换链表 设置好指针
 	// 4. 返回下一个要执行的任务
 
-	console.log(work)
-
 	if (!work.dom) {
 		// 创建dom
 		const dom = (work.dom = createDom(work.type))
-		work.parent.dom.append(dom)
+		// work.parent.dom.append(dom)
 
 		// props
 		updateProps(dom, work.props)
