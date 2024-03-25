@@ -106,24 +106,34 @@ function initChildren(fiber, children) {
 	})
 }
 
-function performWorkOfUnit(fiber) {
-	const isFunctionComponent = typeof fiber.type === 'function'
-	if (!isFunctionComponent) {
-		if (!fiber.dom) {
-			// 1. 创建dom
-			const dom = (fiber.dom = createDom(fiber.type))
-			// fiber.parent.dom.append(dom)
+function updateFunctionComponent(fiber) {
+	const children = [fiber.type(fiber.props)]
 
-			// 2. 处理props
-			updateProps(dom, fiber.props)
-		}
+	initChildren(fiber, children)
+}
+
+function updateHostComponent(fiber) {
+	if (!fiber.dom) {
+		// 1. 创建dom
+		const dom = (fiber.dom = createDom(fiber.type))
+
+		// 2. 处理props
+		updateProps(dom, fiber.props)
 	}
 
-	const children = isFunctionComponent
-		? [fiber.type(fiber.props)]
-		: fiber.props.children
-	// 3. 树转换成链表 设置好指针
+	// children
+	const children = fiber.props.children
 	initChildren(fiber, children)
+}
+
+function performWorkOfUnit(fiber) {
+	const isFunctionComponent = typeof fiber.type === 'function'
+
+	if (isFunctionComponent) {
+		updateFunctionComponent(fiber)
+	} else {
+		updateHostComponent(fiber)
+	}
 
 	// 4. 返回下一个要执行的任务
 	if (fiber.child) {
@@ -137,7 +147,6 @@ function performWorkOfUnit(fiber) {
 		}
 		nextFiber = nextFiber.parent
 	}
-	// return fiber.parent?.sibling
 }
 
 requestIdleCallback(workLoop)
