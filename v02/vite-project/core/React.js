@@ -108,6 +108,26 @@ function commitWork(work) {
 	commitWork(work.sibling)
 }
 
+function updateFunctionComponent(work) {
+	const children = [work.type(work.props)]
+
+	initChildren(work, children)
+}
+
+function updateHostComponent(work) {
+	if (!work.dom) {
+		// 创建dom
+		const dom = (work.dom = createDom(work.type))
+
+		// props
+		updateProps(dom, work.props)
+	}
+
+	const children = work.props.children
+
+	initChildren(work, children)
+}
+
 // 执行任务
 function performWorkOfUnit(work) {
 	// 1. 创建dom
@@ -117,21 +137,10 @@ function performWorkOfUnit(work) {
 
 	const isFunctionComponent = typeof work.type === 'function'
 	if (!isFunctionComponent) {
-		if (!work.dom) {
-			// 创建dom
-			const dom = (work.dom = createDom(work.type))
-			// work.parent.dom.append(dom)
-
-			// props
-			updateProps(dom, work.props)
-		}
+		updateHostComponent(work)
+	} else {
+		updateFunctionComponent(work)
 	}
-
-	const children = isFunctionComponent
-		? [work.type(work.props)]
-		: work.props.children
-	// children
-	initChildren(work, children)
 
 	// 返回下一个任务
 	if (work.child) {
