@@ -52,7 +52,7 @@ function updateProps(dom, nextProps, prevProps) {
 	})
 }
 
-function initChildren(work, children) {
+function reconcileChildren(work, children) {
 	console.log(work)
 	let oldWork = work.alternate?.child
 	let prevChild = null
@@ -99,18 +99,18 @@ function initChildren(work, children) {
 //
 function render(el, container) {
 	// root 主入口
-	nextWork = {
+	wipRoot = {
 		dom: container,
 		props: {
 			children: [el],
 		},
 	}
-	root = nextWork
+	nextWork = wipRoot
 }
 
 let nextWork = null
 let currentRoot = null
-let root = null
+let wipRoot = null // work in progress
 function workLoop(deadline) {
 	let shouldYield = false
 
@@ -120,7 +120,7 @@ function workLoop(deadline) {
 		shouldYield = deadline.timeRemaining() < 1
 	}
 
-	if (!nextWork && root) {
+	if (!nextWork && wipRoot) {
 		commitRoot()
 	}
 
@@ -128,9 +128,9 @@ function workLoop(deadline) {
 }
 
 function commitRoot() {
-	commitWork(root.child)
-	currentRoot = root
-	root = null
+	commitWork(wipRoot.child)
+	currentRoot = wipRoot
+	wipRoot = null
 }
 
 function commitWork(work) {
@@ -157,7 +157,7 @@ function commitWork(work) {
 function updateFunctionComponent(work) {
 	const children = [work.type(work.props)]
 
-	initChildren(work, children)
+	reconcileChildren(work, children)
 }
 
 function updateHostComponent(work) {
@@ -171,7 +171,7 @@ function updateHostComponent(work) {
 
 	const children = work.props.children
 
-	initChildren(work, children)
+	reconcileChildren(work, children)
 }
 
 // 执行任务
@@ -204,12 +204,12 @@ function performWorkOfUnit(work) {
 requestIdleCallback(workLoop)
 
 function update() {
-	nextWork = {
+	wipRoot = {
 		dom: currentRoot.dom,
 		props: currentRoot.props,
 		alternate: currentRoot,
 	}
-	root = nextWork
+	nextWork = wipRoot
 }
 
 export default {
