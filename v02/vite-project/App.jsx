@@ -5,9 +5,13 @@ import CReact from './core/React.js'
 
 // function component
 function Counter({ num }) {
+	function handleClick() {
+		console.log('click')
+	}
 	return (
 		<div>
 			<span>Counter: {num}</span>
+			<button onClick={handleClick}>click</button>
 		</div>
 	)
 }
@@ -28,8 +32,8 @@ function App() {
 	return (
 		<div id="app">
 			<Counter num={10} />
-			<Counter num={20} />
-			<CountContianer />
+			{/* <Counter num={20} />
+			<CountContianer /> */}
 		</div>
 	)
 }

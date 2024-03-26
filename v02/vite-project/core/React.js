@@ -33,12 +33,19 @@ function updateProps(dom, props) {
 	// props
 	Object.keys(props).forEach(key => {
 		if (key !== 'children') {
-			dom[key] = props[key]
+			if (key.startsWith('on')) {
+				// onClick => click
+				const eventName = key.slice(2).toLocaleLowerCase()
+				dom.addEventListener(eventName, props[key])
+			} else {
+				dom[key] = props[key]
+			}
 		}
 	})
 }
 
 function initChildren(work, children) {
+	console.log(work)
 	let prevChild = null
 	children.forEach((child, index) => {
 		const newWork = {
