@@ -29,32 +29,59 @@ function createDom(type) {
 		: document.createElement(type)
 }
 
-function updateProps(dom, props) {
-	// props
-	Object.keys(props).forEach(key => {
+function updateProps(dom, nextProps, prevProps) {
+	// 1. old 存在 new 不存在 删除
+	Object.keys(prevProps).forEach(key => {
+		if (!(key in nextProps)) {
+			dom.removeAttribute(key)
+		}
+	})
+	// 2. new 存在 old 不存在 新增
+	// 3. new 存在 old 存在 更新
+	Object.keys(nextProps).forEach(key => {
 		if (key !== 'children') {
 			if (key.startsWith('on')) {
 				// onClick => click
 				const eventName = key.slice(2).toLocaleLowerCase()
-				dom.addEventListener(eventName, props[key])
+				dom.removeEventListener(eventName, prevProps[key])
+				dom.addEventListener(eventName, nextProps[key])
 			} else {
-				dom[key] = props[key]
+				dom[key] = nextProps[key]
 			}
 		}
 	})
 }
 
 function initChildren(work, children) {
-	console.log(work)
+	let oldChild = work.alternate?.child
 	let prevChild = null
 	children.forEach((child, index) => {
-		const newWork = {
-			type: child.type,
-			props: child.props,
-			dom: null,
-			parent: work,
-			child: null,
-			sibling: null,
+		const isSameType = oldChild && oldChild.type === child.type
+		let newWork = null
+		if (isSameType) {
+			newWork = {
+				type: child.type,
+				props: child.props,
+				dom: oldChild.dom,
+				parent: work,
+				child: null,
+				sibling: null,
+				tag: 'update',
+				alternate: oldChild,
+			}
+		} else {
+			newWork = {
+				type: child.type,
+				props: child.props,
+				dom: null,
+				parent: work,
+				child: null,
+				sibling: null,
+				tag: 'placement',
+			}
+		}
+		if (oldChild) {
+			oldChild = oldChild.sibling
 		}
 		if (index === 0) {
 			work.child = newWork
@@ -78,6 +105,7 @@ function render(el, container) {
 }
 
 let nextWork = null
+let currentRoot = null
 let root = null
 function workLoop(deadline) {
 	let shouldYield = false
@@ -97,6 +125,7 @@ function workLoop(deadline) {
 
 function commitRoot() {
 	commitWork(root.child)
+	currentRoot = root
 	root = null
 }
 
@@ -108,8 +137,13 @@ function commitWork(work) {
 		workParent = workParent.parent
 	}
 
-	if (work.dom) {
-		workParent.dom.append(work.dom)
+	// tag
+	if (work.tag === 'placement') {
+		if (work.dom) {
+			workParent.dom.append(work.dom)
+		}
+	} else if (work.tag === 'update') {
+		updateProps(work.dom, work.props, work.alternate.props)
 	}
 	commitWork(work.child)
 	commitWork(work.sibling)
@@ -127,7 +161,7 @@ function updateHostComponent(work) {
 		const dom = (work.dom = createDom(work.type))
 
 		// props
-		updateProps(dom, work.props)
+		updateProps(dom, work.props, {})
 	}
 
 	const children = work.props.children
@@ -164,7 +198,17 @@ function performWorkOfUnit(work) {
 }
 requestIdleCallback(workLoop)
 
+function update() {
+	nextWork = {
+		dom: currentRoot.dom,
+		props: currentRoot.props,
+		alternate: currentRoot,
+	}
+	root = nextWork
+}
+
 export default {
 	createElement,
 	render,
+	update,
 }
