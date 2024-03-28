@@ -1,19 +1,22 @@
 /**@jsx CReact.createElement */
 import CReact from './core/React.js'
 
-// const App = React.createElement('div', { id: 'app' }, 'hello world')
-
-// function component
-let count = 10
+let showBar = true
 function Counter() {
-	function handleClick() {
-		count++
+	// const foo = <div>foo</div>
+	function Foo() {
+		return <div>foo</div>
+	}
+	const bar = <span>bar</span>
+	function toggleShow() {
+		showBar = !showBar
 		CReact.update()
 	}
 	return (
 		<div>
-			<span>Counter: {count}</span>
-			<button onClick={handleClick}>click</button>
+			Counter
+			<div>{showBar ? bar : <Foo />}</div>
+			<button onClick={toggleShow}>toggleShow</button>
 		</div>
 	)
 }

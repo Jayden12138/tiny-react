@@ -55,6 +55,7 @@ function updateProps(dom, nextProps, prevProps) {
 	})
 }
 
+let deleteArr = []
 function initChildren(work, children) {
 	console.log(work)
 	let oldChild = work.alternate?.child
@@ -83,6 +84,11 @@ function initChildren(work, children) {
 				child: null,
 				sibling: null,
 				tag: 'placement',
+			}
+
+			if (oldChild) {
+				// 删除
+				deleteArr.push(oldChild)
 			}
 		}
 
@@ -130,10 +136,26 @@ function workLoop(deadline) {
 	requestIdleCallback(workLoop)
 }
 
+function deleteOldNode(work) {
+	if (work.dom) {
+		let workParent = work.parent
+		while (!workParent.dom) {
+			workParent = workParent.parent
+		}
+
+		workParent.dom.removeChild(work.dom)
+	} else {
+		// function component 并没有dom，所以这里删除其child
+		deleteOldNode(work.child)
+	}
+}
+
 function commitRoot() {
+	deleteArr.forEach(deleteOldNode)
 	commitWork(root.child)
 	currentRoot = root
 	root = null
+	deleteArr = []
 }
 
 function commitWork(work) {
