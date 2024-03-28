@@ -1,13 +1,17 @@
 /**@jsx CReact.createElement */
 import CReact from './core/React.js'
 
-let showBar = true
+let showBar = false
 function Counter() {
-	// const foo = <div>foo</div>
-	function Foo() {
-		return <div>foo</div>
-	}
-	const bar = <span>bar</span>
+	const foo = (
+		<div>
+			foo
+			<div>child1</div>
+			<div>child2</div>
+			<div>child3</div>
+		</div>
+	)
+	const bar = <div>bar</div>
 	function toggleShow() {
 		showBar = !showBar
 		CReact.update()
@@ -15,7 +19,7 @@ function Counter() {
 	return (
 		<div>
 			Counter
-			<div>{showBar ? bar : <Foo />}</div>
+			<div>{showBar ? bar : foo}</div>
 			<button onClick={toggleShow}>toggleShow</button>
 		</div>
 	)

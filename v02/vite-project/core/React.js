@@ -86,9 +86,11 @@ function initChildren(work, children) {
 				tag: 'placement',
 			}
 
-			if (oldChild) {
+			while (oldChild) {
 				// 删除
 				deleteArr.push(oldChild)
+
+				oldChild = oldChild.sibling
 			}
 		}
 
@@ -103,6 +105,12 @@ function initChildren(work, children) {
 		}
 		prevChild = newWork
 	})
+
+	while (oldChild) {
+		deleteArr.push(oldChild)
+
+		oldChild = oldChild.sibling
+	}
 }
 
 //
