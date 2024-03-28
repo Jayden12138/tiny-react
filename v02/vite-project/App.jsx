@@ -3,14 +3,6 @@ import CReact from './core/React.js'
 
 let showBar = false
 function Counter() {
-	const foo = (
-		<div>
-			foo
-			<div>child1</div>
-			<div>child2</div>
-			<div>child3</div>
-		</div>
-	)
 	const bar = <div>bar</div>
 	function toggleShow() {
 		showBar = !showBar
@@ -19,7 +11,7 @@ function Counter() {
 	return (
 		<div>
 			Counter
-			<div>{showBar ? bar : foo}</div>
+			{showBar && bar}
 			<button onClick={toggleShow}>toggleShow</button>
 		</div>
 	)

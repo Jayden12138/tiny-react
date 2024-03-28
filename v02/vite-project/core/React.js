@@ -61,7 +61,7 @@ function initChildren(work, children) {
 	let oldChild = work.alternate?.child
 	let prevChild = null
 	children.forEach((child, index) => {
-		const isSameType = oldChild?.type === child.type
+		const isSameType = oldChild && oldChild.type === child.type
 
 		let newWork = null
 		if (isSameType) {
@@ -76,14 +76,16 @@ function initChildren(work, children) {
 				alternate: oldChild,
 			}
 		} else {
-			newWork = {
-				type: child.type,
-				props: child.props,
-				dom: null,
-				parent: work,
-				child: null,
-				sibling: null,
-				tag: 'placement',
+			if (child) {
+				newWork = {
+					type: child.type,
+					props: child.props,
+					dom: null,
+					parent: work,
+					child: null,
+					sibling: null,
+					tag: 'placement',
+				}
 			}
 
 			while (oldChild) {
@@ -103,7 +105,10 @@ function initChildren(work, children) {
 		} else {
 			prevChild.sibling = newWork
 		}
-		prevChild = newWork
+
+		if (newWork) {
+			prevChild = newWork
+		}
 	})
 
 	while (oldChild) {
