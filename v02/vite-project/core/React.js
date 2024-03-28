@@ -57,7 +57,6 @@ function updateProps(dom, nextProps, prevProps) {
 
 let deleteArr = []
 function initChildren(work, children) {
-	console.log(work)
 	let oldChild = work.alternate?.child
 	let prevChild = null
 	children.forEach((child, index) => {
@@ -133,11 +132,16 @@ function render(el, container) {
 let nextWork = null
 let currentRoot = null
 let root = null
+let wipFiber = null
 function workLoop(deadline) {
 	let shouldYield = false
 
 	while (!shouldYield && nextWork) {
 		nextWork = performWorkOfUnit(nextWork)
+
+		if (root?.sibling?.type === nextWork?.type) {
+			nextWork = undefined
+		}
 
 		shouldYield = deadline.timeRemaining() < 1
 	}
@@ -196,6 +200,7 @@ function commitWork(work) {
 }
 
 function updateFunctionComponent(work) {
+	wipFiber = work
 	const children = [work.type(work.props)]
 
 	initChildren(work, children)
@@ -245,12 +250,14 @@ function performWorkOfUnit(work) {
 requestIdleCallback(workLoop)
 
 function update() {
-	nextWork = {
-		dom: currentRoot.dom,
-		props: currentRoot.props,
-		alternate: currentRoot,
+	let currentFiber = wipFiber
+	return () => {
+		nextWork = {
+			...currentFiber,
+			alternate: currentFiber,
+		}
+		root = nextWork
 	}
-	root = nextWork
 }
 
 export default {
