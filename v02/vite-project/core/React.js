@@ -285,6 +285,11 @@ function useState(initial) {
 
 	function setState(setter) {
 		const isFunction = typeof setter === 'function'
+
+		const eagerState = isFunction ? setter(stateHook.state) : setter
+
+		if (eagerState === stateHook.state) return
+
 		stateHook.queue.push(isFunction ? setter : () => setter)
 
 		nextWork = {

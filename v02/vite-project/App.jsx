@@ -2,10 +2,11 @@
 import CReact from './core/React.js'
 
 function Foo() {
+	console.log('re foo')
 	const [count, setCount] = CReact.useState(10)
 	const [bar, setBar] = CReact.useState('bar')
 	function handleClick() {
-		setCount(c => c + 1)
+		// setCount(c => c + 1)
 		// setBar(b => b + ' bar')
 		setBar('new bar')
 	}
