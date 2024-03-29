@@ -200,6 +200,8 @@ function commitWork(work) {
 }
 
 function updateFunctionComponent(work) {
+	stateHookIndex = 0
+	stateHooks = []
 	wipFiber = work
 	const children = [work.type(work.props)]
 
@@ -260,8 +262,36 @@ function update() {
 	}
 }
 
+let stateHooks = []
+let stateHookIndex = 0
+function useState(initial) {
+	let currentFiber = wipFiber
+	let oldHook = currentFiber.alternate?.stateHooks[stateHookIndex]
+	let stateHook = {
+		state: oldHook ? oldHook.state : initial,
+	}
+
+	stateHookIndex++
+	stateHooks.push(stateHook)
+
+	currentFiber.stateHooks = stateHooks
+
+	function setState(setter) {
+		stateHook.state = setter(stateHook.state)
+
+		nextWork = {
+			...currentFiber,
+			alternate: currentFiber,
+		}
+		root = nextWork
+	}
+
+	return [stateHook.state, setState]
+}
+
 export default {
 	createElement,
 	render,
 	update,
+	useState,
 }
