@@ -6,7 +6,8 @@ function Foo() {
 	const [bar, setBar] = CReact.useState('bar')
 	function handleClick() {
 		setCount(c => c + 1)
-		setBar(b => b + ' bar')
+		// setBar(b => b + ' bar')
+		setBar('new bar')
 	}
 	return (
 		<div>

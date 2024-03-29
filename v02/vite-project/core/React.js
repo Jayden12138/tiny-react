@@ -269,7 +269,14 @@ function useState(initial) {
 	let oldHook = currentFiber.alternate?.stateHooks[stateHookIndex]
 	let stateHook = {
 		state: oldHook ? oldHook.state : initial,
+		queue: oldHook ? oldHook.queue : [],
 	}
+
+	stateHook.queue.forEach(action => {
+		stateHook.state = action(stateHook.state)
+	})
+
+	stateHook.queue = []
 
 	stateHookIndex++
 	stateHooks.push(stateHook)
@@ -277,7 +284,8 @@ function useState(initial) {
 	currentFiber.stateHooks = stateHooks
 
 	function setState(setter) {
-		stateHook.state = setter(stateHook.state)
+		const isFunction = typeof setter === 'function'
+		stateHook.queue.push(isFunction ? setter : () => setter)
 
 		nextWork = {
 			...currentFiber,
