@@ -10,10 +10,23 @@ function Foo() {
 
 	CReact.useEffect(() => {
 		console.log('init')
+		return () => {
+			console.log('cleanup 0')
+		}
 	}, [])
 
 	CReact.useEffect(() => {
-		console.log('update count: ', count)
+		console.log('update1 count: ', count)
+		return () => {
+			console.log('cleanup 1')
+		}
+	}, [count])
+
+	CReact.useEffect(() => {
+		console.log('update2 count: ', count)
+		return () => {
+			console.log('cleanup 2')
+		}
 	}, [count])
 
 	return (
