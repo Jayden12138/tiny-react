@@ -148,7 +148,15 @@ function workLoop(deadline) {
 
 	if (!nextWork && root) {
 		commitRoot()
+
+		if (nextWork) {
+			root = currentRoot
+		}
 	}
+
+	// if (nextWork && !root) {
+	// 	root = currentRoot
+	// }
 
 	requestIdleCallback(workLoop)
 }
