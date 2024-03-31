@@ -233,7 +233,7 @@ function commitWork(work) {
 	// 	workParent.dom.append(work.dom)
 	// }
 
-	if (work.tag === 'update') {
+	if (work.tag === 'update' && work.dom) {
 		updateProps(work.dom, work.props, work.alternate.props)
 	} else if (work.tag === 'placement') {
 		if (work.dom) {
