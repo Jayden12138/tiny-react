@@ -1,6 +1,6 @@
 /**@jsx CReact.createElement */
 import CReact from './core/React.js'
-import { Todos } from './src/Todos.jsx'
+import Todos from './src/Todos.jsx'
 
 function App() {
 	return (

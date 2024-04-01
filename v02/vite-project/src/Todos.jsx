@@ -1,89 +1,72 @@
 import React from '../core/React'
 
-export function Todos() {
+export default function Todos() {
 	const [filter, setFilter] = React.useState('all')
-	const [inputValue, setInputValue] = React.useState('')
-	const [displayTodos, setDisplayTodos] = React.useState([])
 	const [todos, setTodos] = React.useState([])
-
+	const [displayTodos, setDisplayTodos] = React.useState([])
 	React.useEffect(() => {
-		const savedTodos = localStorage.getItem('todos')
-		if (savedTodos) {
-			setTodos(JSON.parse(savedTodos))
+		const rawTodos = localStorage.getItem('todos')
+		if (rawTodos) {
+			setTodos(JSON.parse(rawTodos))
 		}
 	}, [])
-
 	React.useEffect(() => {
-		console.log('change filter, todos', filter, todos)
-		if (filter === 'all') {
-			setDisplayTodos(todos)
+		let newTodos = todos
+		if (filter === 'done') {
+			newTodos = todos.filter(todo => todo.status === 'done')
 		} else if (filter === 'active') {
-			const newTodos = todos.filter(todo => todo.status === 'active')
-			setDisplayTodos(newTodos)
-		} else if (filter === 'done') {
-			const newTodos = todos.filter(todo => todo.status === 'done')
-			setDisplayTodos(newTodos)
+			newTodos = todos.filter(todo => todo.status === 'active')
 		}
+		setDisplayTodos(newTodos)
 	}, [filter, todos])
-
 	function handleAdd() {
-		// react 函数式编程
-		// 不能破坏之前的，每次都需要创建新的
-		// setTodos([...todos, { title: inputValue }])
 		addTodo(inputValue)
-
 		setInputValue('')
 	}
-
 	function createTodo(title) {
-		return {
-			id: crypto.randomUUID(),
-			title,
-			status: 'active',
-		}
+		return { id: crypto.randomUUID(), title, status: 'active' }
 	}
-
 	function addTodo(title) {
-		setTodos([...todos, createTodo(title)])
+		if (!title) {
+			return
+		}
+		setTodos(todos => [...todos, createTodo(title)])
 	}
+	const [inputValue, setInputValue] = React.useState('')
 
-	function removeTodo(id) {
-		const newTodos = todos.filter(todo => todo.id !== id)
-		setTodos(newTodos)
-	}
-
-	function doneTodo(id) {
-		const newTodos = todos.map(todo => {
-			if (todo.id === id) {
-				return {
-					...todo,
-					status: 'done',
-				}
-			}
-			return todo
-		})
-		setTodos(newTodos)
-	}
-
-	function cancelTodo(id) {
-		const newTodos = todos.map(todo => {
-			if (todo.id === id) {
-				return {
-					...todo,
-					status: 'active',
-				}
-			}
-			return todo
-		})
-		setTodos(newTodos)
-	}
 	function saveTodos() {
+		if (!todos) {
+			return
+		}
 		localStorage.setItem('todos', JSON.stringify(todos))
+	}
+	function removeTodo(id) {
+		setTodos(todos => todos.filter(todo => todo.id !== id))
+	}
+	function doneTodo(id) {
+		setTodos(todos =>
+			todos.map(todo => {
+				if (todo.id === id) {
+					todo.status = 'done'
+				}
+				return todo
+			})
+		)
+	}
+	function cancelTodo(id) {
+		setTodos(todos =>
+			todos.map(todo => {
+				if (todo.id === id) {
+					todo.status = 'active'
+				}
+				return todo
+			})
+		)
 	}
 
 	return (
 		<div>
-			<h1>todos</h1>
+			<h2>TODO</h2>
 			<div>
 				<input
 					type="text"
@@ -92,16 +75,15 @@ export function Todos() {
 				/>
 				<button onClick={handleAdd}>add</button>
 			</div>
-
 			<div>
 				<button onClick={saveTodos}>save</button>
 			</div>
-
 			<div>
 				<input
 					type="radio"
 					name="filter"
 					id="all"
+					value="all"
 					checked={filter === 'all'}
 					onChange={() => setFilter('all')}
 				/>
@@ -110,48 +92,47 @@ export function Todos() {
 				<input
 					type="radio"
 					name="filter"
-					id="active"
-					checked={filter === 'active'}
-					onChange={() => setFilter('active')}
-				/>
-				<label htmlFor="active">active</label>
-
-				<input
-					type="radio"
-					name="filter"
 					id="done"
+					value="done"
 					checked={filter === 'done'}
 					onChange={() => setFilter('done')}
 				/>
 				<label htmlFor="done">done</label>
-			</div>
 
+				<input
+					type="radio"
+					name="filter"
+					id="active"
+					value="active"
+					checked={filter === 'active'}
+					onChange={() => setFilter('active')}
+				/>
+				<label htmlFor="active">active</label>
+			</div>
 			<ul>
 				{...displayTodos.map(todo => (
-					<li>
-						<TodoItem
-							todo={todo}
-							removeTodo={removeTodo}
-							doneTodo={doneTodo}
-							cancelTodo={cancelTodo}
-						/>
-					</li>
+					<TodoItem
+						todo={todo}
+						removeTodo={removeTodo}
+						cancelTodo={cancelTodo}
+						doneTodo={doneTodo}
+					></TodoItem>
 				))}
 			</ul>
 		</div>
 	)
 }
 
-function TodoItem({ todo, removeTodo, doneTodo, cancelTodo }) {
+function TodoItem({ todo, removeTodo, cancelTodo, doneTodo }) {
 	return (
-		<div className={todo.status}>
-			{todo.title}
-			<button onClick={() => removeTodo(todo.id)}>remove</button>
-			{todo.status === 'active' ? (
-				<button onClick={() => doneTodo(todo.id)}>done</button>
-			) : (
+		<li className={todo.status}>
+			{todo.title}&nbsp;&nbsp;
+			{todo.status === 'done' ? (
 				<button onClick={() => cancelTodo(todo.id)}>cancel</button>
+			) : (
+				<button onClick={() => doneTodo(todo.id)}>done</button>
 			)}
-		</div>
+			<button onClick={() => removeTodo(todo.id)}>remove</button>
+		</li>
 	)
 }
