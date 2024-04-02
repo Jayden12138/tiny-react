@@ -15,3 +15,5 @@
 还有一点也蛮重要的，就是学会了断点调试，看调用栈，说真的，野路子出来的，工作也没人带，纯靠自学，一年多只会有一天到晚 log，现在不一样了，在关键点打一个 log，通过 log 进入的源代码里，打上断点开始 debugger，别提多爽了，再通过调用栈查看调用的情况，舒服！
 
 先写到这吧，猫趴上旁边一直按删除键 😭
+
+补充下：每天的笔记在obsidian上，obsidian同步在了github仓库里：https://github.com/Jayden12138/Obsidian/tree/dev/react/tiny-react
